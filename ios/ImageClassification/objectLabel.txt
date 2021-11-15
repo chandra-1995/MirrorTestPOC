@@ -1,0 +1,7 @@
+dirty_unclear
+far
+dark
+cropped
+ok
+not_mobile
+obstruction
