@@ -45,13 +45,11 @@ class OALogger {
     
     // MARK: - Object LifeCycle
     init(initiatedFor: OALoggerInitiatedFor) {
-        #if DEBUG
         let currentDateTime = OALogger.logsTimeFormat.string(from: Date())
         mainContainerFolderPath = "\(documentDirectory)/OALogger_\(OALogger.customerID)/\(initiatedFor.rawValue)/LogsSession_\(currentDateTime)"
         if !createDirectoryIfRequired(forPath: mainContainerFolderPath) {
             print("Error Creating Session Logging Directory")
         }
-        #endif
     }
     
     deinit {
