@@ -42,7 +42,7 @@ class MirrorTestConstantParameters{
     let OCRFailed = "Capturing image..."
     let OCRLeftRightFailed = "Tilt your camera slightly downwards"
     let errorMessageAfterProcessFrames = 3
-    
+    let q2StackBufferLimit = 13 // its a constant value for because after this process automatically get stopped event camera delegate not get called
     static let shared = MirrorTestConstantParameters()
     
     //Initializer access level change now

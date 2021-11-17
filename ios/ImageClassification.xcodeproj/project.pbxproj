@@ -70,6 +70,10 @@
 		8F15B842272C32E2000A564B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F15B841272C32E2000A564B /* Constants.swift */; };
 		8F15B844272C330A000A564B /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F15B843272C330A000A564B /* UIColor.swift */; };
 		8F15B846272C3350000A564B /* DLSFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F15B845272C3350000A564B /* DLSFont.swift */; };
+		8F1B642827426BF0000F599C /* imageClassificationLabels.txt in Resources */ = {isa = PBXBuildFile; fileRef = 8F1B642427426BF0000F599C /* imageClassificationLabels.txt */; };
+		8F1B642927426BF0000F599C /* objectDetectionLabels.txt in Resources */ = {isa = PBXBuildFile; fileRef = 8F1B642527426BF0000F599C /* objectDetectionLabels.txt */; };
+		8F1B642A27426BF0000F599C /* imageClassificationModel.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 8F1B642627426BF0000F599C /* imageClassificationModel.tflite */; };
+		8F1B642B27426BF0000F599C /* objectDetectionModel.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 8F1B642727426BF0000F599C /* objectDetectionModel.tflite */; };
 		8F38E62B2721590700C75820 /* ImageTextAndBarCodeRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F38E62A2721590700C75820 /* ImageTextAndBarCodeRecognizer.swift */; };
 		8F38E62D272167A300C75820 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8F38E62C272167A300C75820 /* GoogleService-Info.plist */; };
 		8F38E62F27218BC600C75820 /* test.html in Resources */ = {isa = PBXBuildFile; fileRef = 8F38E62E27218BC600C75820 /* test.html */; };
@@ -91,6 +95,7 @@
 		8FE97FB3273914CB00CF7E41 /* AsyncOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE97FB2273914CB00CF7E41 /* AsyncOperation.swift */; };
 		8FE97FB527391CAF00CF7E41 /* MirrorTest_IC_Far_Operation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE97FB427391CAF00CF7E41 /* MirrorTest_IC_Far_Operation.swift */; };
 		8FE97FB727394CDB00CF7E41 /* Stack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FE97FB627394CDB00CF7E41 /* Stack.swift */; };
+		954D44AF2D434311F429813E /* Pods_ImageClassification.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F9A192F5BF45C6456BBF3D5 /* Pods_ImageClassification.framework */; };
 		AA16E5A22180843800D9E153 /* InfoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA16E5A12180843700D9E153 /* InfoCell.swift */; };
 		AA5B0EEA217E5E300026FF23 /* InferenceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA5B0EE9217E5E300026FF23 /* InferenceViewController.swift */; };
 		AA5B0EEC217E70000026FF23 /* CurvedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA5B0EEB217E70000026FF23 /* CurvedView.swift */; };
@@ -106,6 +111,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		09529BE5EEFE398FBBBF8871 /* Pods-ImageClassification.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageClassification.release.xcconfig"; path = "Target Support Files/Pods-ImageClassification/Pods-ImageClassification.release.xcconfig"; sourceTree = "<group>"; };
 		1985DE9525DA4D1C0018D6B5 /* StartViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartViewController.swift; sourceTree = "<group>"; };
 		1985DEA525DA6A700018D6B5 /* CommonDataHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonDataHandler.swift; sourceTree = "<group>"; };
 		1985DEA825DA761A0018D6B5 /* UIColorExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIColorExtension.swift; sourceTree = "<group>"; };
@@ -114,6 +120,7 @@
 		1985DEDA25DBD4210018D6B5 /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
 		1985DEDD25DBD5180018D6B5 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		1985DEE025DBD5530018D6B5 /* Downloder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloder.swift; sourceTree = "<group>"; };
+		51648F62949A678821137A19 /* Pods-ImageClassification.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ImageClassification.debug.xcconfig"; path = "Target Support Files/Pods-ImageClassification/Pods-ImageClassification.debug.xcconfig"; sourceTree = "<group>"; };
 		8F15B7D4272C203D000A564B /* TextFieldExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldExtension.swift; sourceTree = "<group>"; };
 		8F15B7D9272C278E000A564B /* Lato-HeavyItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-HeavyItalic.ttf"; sourceTree = "<group>"; };
 		8F15B7DA272C278E000A564B /* Lato-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Italic.ttf"; sourceTree = "<group>"; };
@@ -169,9 +176,14 @@
 		8F15B841272C32E2000A564B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		8F15B843272C330A000A564B /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
 		8F15B845272C3350000A564B /* DLSFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DLSFont.swift; sourceTree = "<group>"; };
+		8F1B642427426BF0000F599C /* imageClassificationLabels.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = imageClassificationLabels.txt; sourceTree = "<group>"; };
+		8F1B642527426BF0000F599C /* objectDetectionLabels.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = objectDetectionLabels.txt; sourceTree = "<group>"; };
+		8F1B642627426BF0000F599C /* imageClassificationModel.tflite */ = {isa = PBXFileReference; lastKnownFileType = file; path = imageClassificationModel.tflite; sourceTree = "<group>"; };
+		8F1B642727426BF0000F599C /* objectDetectionModel.tflite */ = {isa = PBXFileReference; lastKnownFileType = file; path = objectDetectionModel.tflite; sourceTree = "<group>"; };
 		8F38E62A2721590700C75820 /* ImageTextAndBarCodeRecognizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageTextAndBarCodeRecognizer.swift; sourceTree = "<group>"; };
 		8F38E62C272167A300C75820 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		8F38E62E27218BC600C75820 /* test.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = test.html; path = ../../../../../Desktop/test.html; sourceTree = "<group>"; };
+		8F9A192F5BF45C6456BBF3D5 /* Pods_ImageClassification.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ImageClassification.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FB491E22643D236009D7970 /* TFLiteModelsDownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFLiteModelsDownloadManager.swift; sourceTree = "<group>"; };
 		8FB6B247263FF47500F56769 /* JHDownloadBatch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JHDownloadBatch.swift; sourceTree = "<group>"; };
 		8FB6B248263FF47500F56769 /* JHDownloadManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JHDownloadManager.swift; sourceTree = "<group>"; };
@@ -211,6 +223,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				954D44AF2D434311F429813E /* Pods_ImageClassification.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -232,6 +245,10 @@
 		8F01A5392650DF99002D33C9 /* TFLiteModels */ = {
 			isa = PBXGroup;
 			children = (
+				8F1B642427426BF0000F599C /* imageClassificationLabels.txt */,
+				8F1B642627426BF0000F599C /* imageClassificationModel.tflite */,
+				8F1B642527426BF0000F599C /* objectDetectionLabels.txt */,
+				8F1B642727426BF0000F599C /* objectDetectionModel.tflite */,
 			);
 			path = TFLiteModels;
 			sourceTree = "<group>";
@@ -370,6 +387,8 @@
 		98B3FC4669D7D2EF4FE2BE58 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
+				51648F62949A678821137A19 /* Pods-ImageClassification.debug.xcconfig */,
+				09529BE5EEFE398FBBBF8871 /* Pods-ImageClassification.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -427,6 +446,7 @@
 				AAE79E58213521DA00E7AC1F /* ImageClassification */,
 				AAE79E57213521DA00E7AC1F /* Products */,
 				98B3FC4669D7D2EF4FE2BE58 /* Pods */,
+				C89C6E03DA4AA12C782DCE84 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -481,6 +501,14 @@
 			path = "Camera Feed";
 			sourceTree = "<group>";
 		};
+		C89C6E03DA4AA12C782DCE84 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8F9A192F5BF45C6456BBF3D5 /* Pods_ImageClassification.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -488,9 +516,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AAE79E7E213521DB00E7AC1F /* Build configuration list for PBXNativeTarget "ImageClassification" */;
 			buildPhases = (
+				33EC4EAC06152AAC0C2AE043 /* [CP] Check Pods Manifest.lock */,
 				AAE79E52213521DA00E7AC1F /* Sources */,
 				AAE79E53213521DA00E7AC1F /* Frameworks */,
 				AAE79E54213521DA00E7AC1F /* Resources */,
+				ACFD8E6AA8E4C342B370DC1F /* [CP] Embed Pods Frameworks */,
+				8287618698770E82819F990F /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -543,8 +574,10 @@
 				8F15B7ED272C278E000A564B /* Lato-HeavyItalic.ttf in Resources */,
 				8F15B7F6272C278E000A564B /* Lato-Hairline.ttf in Resources */,
 				8F15B7FE272C278E000A564B /* Lato-Light.ttf in Resources */,
+				8F1B642827426BF0000F599C /* imageClassificationLabels.txt in Resources */,
 				8F38E62D272167A300C75820 /* GoogleService-Info.plist in Resources */,
 				8F15B7FF272C278E000A564B /* Lato-Medium.ttf in Resources */,
+				8F1B642B27426BF0000F599C /* objectDetectionModel.tflite in Resources */,
 				AAE79E64213521DB00E7AC1F /* LaunchScreen.storyboard in Resources */,
 				8F15B7EE272C278E000A564B /* Lato-Italic.ttf in Resources */,
 				8F15B7F3272C278E000A564B /* Lato-SemiboldItalic.ttf in Resources */,
@@ -553,8 +586,10 @@
 				8F15B7EF272C278E000A564B /* Lato-LightItalic.ttf in Resources */,
 				8F15B7F9272C278E000A564B /* Lato-MediumItalic.ttf in Resources */,
 				8F15B7FB272C278E000A564B /* Lato-Heavy.ttf in Resources */,
+				8F1B642927426BF0000F599C /* objectDetectionLabels.txt in Resources */,
 				8F15B7FA272C278E000A564B /* OFL.txt in Resources */,
 				8F15B7FC272C278E000A564B /* README.txt in Resources */,
+				8F1B642A27426BF0000F599C /* imageClassificationModel.tflite in Resources */,
 				8F15B800272C278E000A564B /* Lato-ThinItalic.ttf in Resources */,
 				8F15B7F7272C278E000A564B /* Lato-BlackItalic.ttf in Resources */,
 				AAE79E5F213521DA00E7AC1F /* Main.storyboard in Resources */,
@@ -569,6 +604,65 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		33EC4EAC06152AAC0C2AE043 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ImageClassification-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8287618698770E82819F990F /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ImageClassification/Pods-ImageClassification-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ImageClassification/Pods-ImageClassification-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ImageClassification/Pods-ImageClassification-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		ACFD8E6AA8E4C342B370DC1F /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ImageClassification/Pods-ImageClassification-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-ImageClassification/Pods-ImageClassification-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ImageClassification/Pods-ImageClassification-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		AAE79E52213521DA00E7AC1F /* Sources */ = {
@@ -789,6 +883,7 @@
 		};
 		AAE79E7F213521DB00E7AC1F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 51648F62949A678821137A19 /* Pods-ImageClassification.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -816,6 +911,7 @@
 		};
 		AAE79E80213521DB00E7AC1F /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 09529BE5EEFE398FBBBF8871 /* Pods-ImageClassification.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

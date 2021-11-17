@@ -11,68 +11,55 @@ import AVFoundation
 import UIKit
 
 class MirrorTest_IC_Far_Operation: AsyncOperation {
-    private let pixelBuffer: CVPixelBuffer
     private let oaLogger: OALogger
-    var originalImage: UIImage?
-    var detectedObjectRect: CGRect?
-    var imeiError: String?
-    var operationError: String?
+    let processResultModel: MirrorTestProcessModel?
     
     // MARK: - INSTANCE METHODS
-    init(pixelBuffer: CVPixelBuffer, logger: OALogger, originalImage: UIImage, detectedObjectRect: CGRect, imeiError: String? = nil) {
-        self.pixelBuffer = pixelBuffer
+    init(logger: OALogger, processModel: MirrorTestProcessModel?) {
         self.oaLogger = logger
-        self.originalImage = originalImage
-        self.detectedObjectRect = detectedObjectRect
-        self.imeiError = imeiError
+        self.processResultModel = processModel
     }
     
     override func main() {
         
-        guard !isCancelled, let detectedObjectRect = self.detectedObjectRect else {
+        guard !isCancelled, let detectedObjectRect = self.processResultModel?.detectedObjectRect else {
+            finish()
             return
         }
         
-        let detectedObjImage = originalImage?.cropImage(rect: detectedObjectRect)
-        let result = checkIfFarOrNear(image: originalImage, croppedImage: detectedObjImage)
+        let detectedObjImage = self.processResultModel?.originalImage?.cropImage(rect: detectedObjectRect)
+        let result = checkIfFarOrNear(image: self.processResultModel?.originalImage, croppedImage: detectedObjImage)
         // Test far & near
         if !result.far && !result.near {
-            let detectedObjCVBuffer = detectedObjImage?.pixelBufferFromImage()
             // Test Dark logic
-            if !isDark(capturedImage: originalImage), let detectedObjCVBuffer = detectedObjCVBuffer {
-                guard !self.isCancelled else {return}
+            if !isDark(capturedImage: self.processResultModel?.originalImage), let detectedObjCVBuffer = detectedObjImage?.pixelBufferFromImage() {
+                guard !self.isCancelled else {
+                    finish()
+                    return
+                }
                 // Run image classification
                 if let results = runImageClassification(pixelBuffer: detectedObjCVBuffer, isSkipNonMendatoryClasses: false) {
                     // if classification failed
                     if results.filter({$0.label == MirrorTestConstantParameters.shared.imageClassificationMendatoryClass && $0.confidence >= MirrorTestConstantParameters.shared.imageClassificationConfidence}).first == nil {
+                    } else {
                         let resultWithMaxConfidence = results.max{ prev, next in prev.confidence < next.confidence }
                         
-                        if resultWithMaxConfidence?.label == MirrorTestConstantParameters.shared.imageClassificationMendatoryClass { // low confidence with ok
-                            debugPrint("classification failed ImageClassificationLowConfidence \(self.name)")
-                            oaLogger.log(errorString: "classification failed ImageClassificationLowConfidence", primaryImage: originalImage, primaryImageName: self.name, secondaryImage: detectedObjImage, secondaryImageName: self.name)
-                            operationError = MirrorTestConstantParameters.shared.okWithLowConfidence
-                        } else { // result found other than ok
-                            debugPrint("Obstracted Image Detected \(self.name)")
-                            oaLogger.log(errorString: "Obstracted Image Detected", primaryImage: originalImage, primaryImageName: self.name, secondaryImage: detectedObjImage, secondaryImageName: self.name)
-                            operationError = MirrorTestConstantParameters.shared.obstractedImageDetected
-                        }
                     }
                 } else { // no result from classification
                     debugPrint("image classification failed  \(self.name)")
-                    self.oaLogger.log(errorString: "image classification failed  \(self.name)", primaryImage: originalImage, primaryImageName: self.name ?? "")
+                    self.oaLogger.log(errorString: "image classification failed  \(self.name)", primaryImage: self.processResultModel?.originalImage, primaryImageName: self.name ?? "")
+                    self.processResultModel?.mProcessError = MirrorTestError.ImageClassificationFailed
                 }
             } else { // dark logic failed
                 debugPrint("dark logic failed  \(String(describing: self.name))")
-                self.oaLogger.log(errorString: "dark logic failed  \(String(describing: self.name))", primaryImage: originalImage, primaryImageName: self.name ?? "")
-                operationError = MirrorTestConstantParameters.shared.darkImageDetected
+                self.oaLogger.log(errorString: "dark logic failed  \(String(describing: self.name))", primaryImage: self.processResultModel?.originalImage, primaryImageName: self.name ?? "")
+                self.processResultModel?.mProcessError = MirrorTestError.ImageIsDark
             }
         } else { // far or near failed
             debugPrint("far & near logic failed far value = \(result.far) , near value = \(result.near)  \(String(describing: self.name))")
-            self.oaLogger.log(errorString: "far & near logic failed far value = \(result.far) , near value = \(result.near)  \(String(describing: self.name))", primaryImage: originalImage, primaryImageName: self.name ?? "")
-            operationError = result.far ? MirrorTestConstantParameters.shared.objectIsFar : MirrorTestConstantParameters.shared.objectIsNear
+            self.oaLogger.log(errorString: "far & near logic failed far value = \(result.far) , near value = \(result.near)  \(String(describing: self.name))", primaryImage: self.processResultModel?.originalImage, primaryImageName: self.name ?? "")
+            self.processResultModel?.mProcessError = result.far ? MirrorTestError.ObjectIsFar : MirrorTestError.ObjectIsTooNear
         }
-        
-        guard !self.isCancelled else {return}
         self.finish()
     }
 }
@@ -107,7 +94,7 @@ extension MirrorTest_IC_Far_Operation {
     
     private func isDark(capturedImage: UIImage?) -> Bool { // Dark logic
         var result = false
-        if let image = capturedImage, let detectedObjectRect = detectedObjectRect {
+        if let image = capturedImage, let detectedObjectRect = self.processResultModel?.detectedObjectRect {
             let values = getBrightnessOutSideBoundingBox(originalImage: image, objectImageRect: detectedObjectRect)
             debugPrint("dark values \(values)")
             oaLogger.log(errorString: "dark values \(values)")

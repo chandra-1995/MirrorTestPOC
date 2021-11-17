@@ -19,6 +19,49 @@ protocol MirrorTestDelegate: AnyObject {
     func imageCaptureSuccesfully(image: UIImage?, attemptTakenTime: String?)
 }
 
+enum MirrorTestError: Error {
+    case ObjectDetectionFaild
+    case ImageClassificationFailed // nomessage
+    case ImageClassificationLowConfidence
+    case ModelLoadingError // next frame capture
+    case RuntimeError // next frame capture
+    case ObstractImageDetected
+    case ObjectIsFar
+    case ObjectIsTooNear
+    case OCRFailed
+    case LeftRightTextOCRFailed
+    case ImageIsDark
+    
+    func getRespectiveMessage() -> String? {
+        switch self {
+        case .ObjectDetectionFaild:
+            return MirrorTestConstantParameters.shared.objectDetectionFailed
+        case .ImageClassificationLowConfidence:
+            return MirrorTestConstantParameters.shared.okWithLowConfidence
+        case .ObstractImageDetected:
+            return MirrorTestConstantParameters.shared.obstractedImageDetected
+        case .ObjectIsFar:
+            return MirrorTestConstantParameters.shared.objectIsFar
+        case .ObjectIsTooNear:
+            return MirrorTestConstantParameters.shared.objectIsNear
+        case .OCRFailed:
+            return MirrorTestConstantParameters.shared.OCRFailed
+        case .ImageIsDark:
+            return MirrorTestConstantParameters.shared.darkImageDetected
+        case .LeftRightTextOCRFailed:
+            return MirrorTestConstantParameters.shared.OCRLeftRightFailed
+        default:
+            return "runtime error"
+        }
+    }
+}
+
+class MirrorTestProcessModel {
+    var originalImage: UIImage?
+    var detectedObjectRect: CGRect?
+    var mProcessError: MirrorTestError?
+}
+
 class ViewController: UIViewController {
     
     @IBOutlet weak var previewView: PreviewView!
@@ -59,20 +102,14 @@ class ViewController: UIViewController {
     var isSupportMultiThreading = true
     var delayOfShowingMessages: Double = 0
     let queue = DispatchQueue(label: "com.oneassist")
-    let stackForICqueueOperations = Stack<MirrorTest_IC_Far_Operation>()
+    let stackForICqueueOperations = Stack<MirrorTestProcessModel>()
     let maxConcurrentForIC_Queue = 1
     var currentRunningICOperationsInQueue = 0
-    var isLockAquired = false
     var isImageCaptured = false
     var errorMessage: String? = nil {
         willSet {
-            if !(newValue?.isEmpty ?? true) {
-                resetEverythingToShowError()
-                DispatchQueue.main.async { [weak self] in
-                    self?.callEraseErrorMessageTimer()
-                }
-            }
             DispatchQueue.main.async { [weak self] in
+                self?.callEraseErrorMessageTimer()
                 self?.errorLabel.text = newValue
             }
         }
@@ -209,9 +246,12 @@ extension ViewController: CameraFeedManagerDelegate {
         
         let currentTimeMs = Date().timeIntervalSince1970 * 1000
         
+        lock.lock()
         guard (errorMessage?.isEmpty ?? true) else {
+            lock.unlock()
             return
         }
+        lock.unlock()
         
         previousInferenceTimeMs = currentTimeMs
         
@@ -219,18 +259,19 @@ extension ViewController: CameraFeedManagerDelegate {
         newOperation.name = UUID().uuidString
         newOperation.completionBlock = { [weak newOperation, weak self] in
             guard let newOperation = newOperation,
-                  !newOperation.isCancelled,
-                  let image = newOperation.originalImage
-            else { return }
+                  !newOperation.isCancelled else { return }
             
-            if newOperation.isIMEIMatched {
-                self?.onImageCaptureSuccess(image: image, fromOperation: newOperation)
-            } else {
-                if newOperation.isObjectDetected, let objectRect = newOperation.detectedObjectRect {
-                    self?.handOverFrameForClassification(pixelBuffer: pixelBuffer, originalImage: image, detectedObjectRect: objectRect, imeiError: newOperation.operationError)
+            // object found & imei matched
+            if newOperation.processResultModel.mProcessError == nil {
+                print("------ image capture success called Q1")
+                self?.onImageCaptureSuccess(image: newOperation.processResultModel.originalImage, fromOperation: newOperation)
+            }
+            else if let error = newOperation.processResultModel.mProcessError {
+                if error != MirrorTestError.ObjectDetectionFaild  { // IMEI failed
+                    self?.addOperationToICQueue(processModel: newOperation.processResultModel)
                 } else {
-                    print("showing error from q1")
-                    self?.showError(message: newOperation.operationError)
+                    print("showing error from q1 \(newOperation.processResultModel.mProcessError)")
+                    self?.showError(message: newOperation.processResultModel.mProcessError?.getRespectiveMessage())
                 }
             }
         }
@@ -285,99 +326,93 @@ extension ViewController: CameraFeedManagerDelegate {
 extension ViewController {
     
     fileprivate func callEraseErrorMessageTimer() {
-        eraseErrorTimer = nil
-        eraseErrorTimer = Timer.scheduledTimer(withTimeInterval: Double(round(100 * delayOfShowingMessages)/100), repeats: false, block: { timer in
-            DispatchQueue.main.async { [weak self] in
-                self?.errorMessage = nil
-                self?.startProcessAgain()
-            }
-        })
+        if eraseErrorTimer == nil {
+            eraseErrorTimer = Timer.scheduledTimer(withTimeInterval: Double(round(100 * delayOfShowingMessages)/100), repeats: false, block: { timer in
+                DispatchQueue.main.async { [weak self] in
+                    self?.startProcessAgain()
+                    self?.eraseErrorTimer?.invalidate()
+                    self?.eraseErrorTimer = nil
+                    self?.errorMessage = nil
+                }
+            })
+        }
     }
     
-    fileprivate func addOperationToICQueue(_ classificationOperation: MirrorTest_IC_Far_Operation) {
-        guard !self.isLockAquired else {
-            print("frame drop 1")
-            return
-        }
+    fileprivate func addOperationToICQueue(processModel: MirrorTestProcessModel?) {
         print("--- starting to lock 1")
         lock.lock()
-        isLockAquired = true
         print("going to lock 1")
-            if (self.currentRunningICOperationsInQueue ) > (self.maxConcurrentForIC_Queue) {
-                self.stackForICqueueOperations.push(classificationOperation)
+        if let processModel = processModel, (errorMessage?.isEmpty ?? true) {
+            if (self.currentRunningICOperationsInQueue ) >= (self.maxConcurrentForIC_Queue)
+               , self.stackForICqueueOperations.count < MirrorTestConstantParameters.shared.q2StackBufferLimit {
+                self.stackForICqueueOperations.push(processModel)
                 print(":: directly added to IC Operations Stack count after adding \(self.stackForICqueueOperations.count)")
             } else {
                 print(":: directly added to IC Queue")
                 self.currentRunningICOperationsInQueue += 1
+                let classificationOperation = createOperationForICQueue(processModel: processModel)
                 self.mirrorTestIC_queue?.addOperation(classificationOperation)
             }
-        print("going to unlock 1")
-        isLockAquired = false
+        }
         lock.unlock()
     }
     
-    fileprivate func handOverFrameForClassification(pixelBuffer: CVPixelBuffer, originalImage: UIImage, detectedObjectRect: CGRect, imeiError: String?) {
-        
-        let classificationOperation = MirrorTest_IC_Far_Operation(pixelBuffer: pixelBuffer, logger: oaLogger, originalImage: originalImage, detectedObjectRect: detectedObjectRect, imeiError: imeiError)
+    fileprivate func createOperationForICQueue(processModel: MirrorTestProcessModel?) -> MirrorTest_IC_Far_Operation {
+        let classificationOperation = MirrorTest_IC_Far_Operation(logger: self.oaLogger, processModel: processModel)
         classificationOperation.name = UUID().uuidString
         classificationOperation.completionBlock = { [weak classificationOperation, weak self] in
             print("**** under operation completion")
             guard let operation = classificationOperation,!operation.isCancelled else {
                 return
             }
+            print("going to show error from q2 \(operation.processResultModel?.mProcessError)")
             // will improve imeieRROR vairables and opeationError with model as suggested ankur sir
-            if let error = operation.operationError, !(error.isEmpty) {
+            if let error = operation.processResultModel?.mProcessError, let message = error.getRespectiveMessage() {
                 print("showing error from q2")
-                self?.showError(message: error)
-            } else if let error = operation.imeiError, !(error.isEmpty) {
-                print("showing error from q2")
-                self?.showError(message: error)
-            } else if let image = operation.originalImage {
+                self?.showError(message: message)
+            } else if let image = operation.processResultModel?.originalImage {
+                print("------ image capture success called Q2")
                 self?.onImageCaptureSuccess(image: image, fromOperation: operation)
             }
         }
-        addOperationToICQueue(classificationOperation)
+        return classificationOperation
     }
     
     fileprivate func showError(message: String?) {
-        guard !self.isLockAquired else {
-            print("frame drop 2")
+        lock.lock()
+        guard (self.errorMessage?.isEmpty ?? true) else {
+            lock.unlock()
             return
         }
-        print("--- starting to lock 2")
-        lock.lock()
-        isLockAquired = true
-        print("going to lock 2")
         if (self.currentProcessedFramesForError) >= MirrorTestConstantParameters.shared.errorMessageAfterProcessFrames,
-           (self.errorMessage?.isEmpty ?? true)
-           , !(message?.isEmpty ?? true) {
+           (self.errorMessage?.isEmpty ?? true) {
+            print("showing error message \(message)")
+            resetEverythingToShowError()
             self.errorMessage = message
             print(":: removed stack data for message isEmpty \(self.stackForICqueueOperations.isEmpty)")
         } else {
             self.currentProcessedFramesForError += 1
             if !(self.stackForICqueueOperations.isEmpty),
-               let operation = self.stackForICqueueOperations.pop() {
+               let processModel = self.stackForICqueueOperations.pop() {
+                let operation = createOperationForICQueue(processModel: processModel)
                 print(":: added from stack to IC Queue")
-                self.currentRunningICOperationsInQueue += 1
                 self.mirrorTestIC_queue?.addOperation(operation)
             } else {
+                currentRunningICOperationsInQueue = 0
                 print(":: error popping empty is \(!(self.stackForICqueueOperations.isEmpty)) \(self.stackForICqueueOperations.peek())")
             }
         }
-        print("going to unlock 2")
-        isLockAquired = false
         lock.unlock()
     }
     
-    fileprivate func onImageCaptureSuccess(image: UIImage, fromOperation: Operation) {
+    fileprivate func onImageCaptureSuccess(image: UIImage?, fromOperation: Operation) {
         DispatchQueue.main.async { [weak self] in
-            guard let self = self, !self.isLockAquired else {
+            guard let self = self, let image = image else {
                 print("frame drop 3")
                 return
             }
             print("--- starting to lock 3")
             self.lock.lock()
-            self.isLockAquired = true
             print("going to lock 3")
             if self.isImageCaptured {
                 self.lock.unlock()
@@ -394,7 +429,6 @@ extension ViewController {
             self.oaLogger.log(errorString: "-- Whole Process Took  \(diff) seconds \n Max Memory Usage:: \(self.formattedMemory(memory: self.maxMemoryUsage)) CPU Usage:: \(round(self.maxCPUUsage))%")
             print("going to unlock 3")
             self.isImageCaptured = true
-            self.isLockAquired = false
             self.lock.unlock()
             self.dismiss(animated: true, completion: nil)
         }
@@ -418,12 +452,13 @@ extension ViewController {
     }
     
     fileprivate func startProcessAgain() {
-        self.cameraCapture.checkCameraConfigurationAndStartSession()
+        //        self.cameraCapture.checkCameraConfigurationAndStartSession()
+//        self.mirrorTestOD_OCR_queue?.cancelAllOperations()
         self.performanceView?.start()
     }
     
     fileprivate func resetEverythingToShowError() {
-        self.cameraCapture.stopSession()
+        //        self.cameraCapture.stopSession()
         self.mirrorTestIC_queue?.cancelAllOperations()
         self.stackForICqueueOperations.removeAll()
         self.performanceView?.pause()

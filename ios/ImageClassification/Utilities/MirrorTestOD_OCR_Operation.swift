@@ -11,43 +11,38 @@ import AVFoundation
 import UIKit
 
 class MirrorTestOD_OCR_Operation: AsyncOperation {
-    
-    private let pixelBuffer: CVPixelBuffer
     private let oaLogger: OALogger
-    
-    var operationError: String?
-    var isIMEIMatched: Bool = false
-    var isObjectDetected: Bool = false
-    var originalImage: UIImage?
-    var detectedObjectRect: CGRect?
+    private let pixelBuffer: CVPixelBuffer
+    let processResultModel: MirrorTestProcessModel = MirrorTestProcessModel()
     
     // MARK: - INSTANCE METHODS
     init(pixelBuffer: CVPixelBuffer, logger: OALogger) {
-        self.pixelBuffer = pixelBuffer
         self.oaLogger = logger
+        self.pixelBuffer = pixelBuffer
     }
 
     override func main() {
         
         guard !isCancelled else {
+            finish()
             return
         }
-        self.originalImage = UIImage(pixelBuffer: pixelBuffer)
-        if let objectDetectionResult = runObjectDetectionModel(), let originalImage = self.originalImage {
-            self.isObjectDetected = true
-            self.detectedObjectRect = objectDetectionResult.rect
-            if var detectedObjectRect = self.detectedObjectRect {
+        self.processResultModel.originalImage = UIImage(pixelBuffer: pixelBuffer)
+        if let objectDetectionResult = runObjectDetectionModel(), let originalImage = self.processResultModel.originalImage {
+            self.processResultModel.detectedObjectRect = objectDetectionResult.rect
+            if var detectedObjectRect = self.processResultModel.detectedObjectRect {
                 detectedObjectRect.size.height = originalImage.size.height - detectedObjectRect.minY
                 let imageForOCR = originalImage.cropImage(rect: detectedObjectRect)
                 guard !self.isCancelled else {
+                    self.finish()
                     return
                 }
                 self.performOCR(originalImage: originalImage,imageForOCR: imageForOCR)
             }
         } else {
             debugPrint("object detection failed.  \(String(describing: self.name))")
-            self.oaLogger.log(errorString: "object detection failed.  \(String(describing: self.name))", primaryImage: originalImage, primaryImageName: self.name ?? "")
-            operationError = MirrorTestConstantParameters.shared.objectDetectionFailed
+            self.oaLogger.log(errorString: "object detection failed.  \(String(describing: self.name))", primaryImage: self.processResultModel.originalImage, primaryImageName: self.name ?? "")
+            self.processResultModel.mProcessError = MirrorTestError.ObjectDetectionFaild
             self.finish()
         }
     }
@@ -57,7 +52,7 @@ class MirrorTestOD_OCR_Operation: AsyncOperation {
 extension MirrorTestOD_OCR_Operation {
     func runObjectDetectionModel() -> Inference? {
         let objectDataHandler = ModelDataHandler(modelFileInfo: MobileNetSSD.modelInfo, labelsFileInfo: MobileNetSSD.labelsInfo, inputWidth: 300, inputHeight: 300)
-        let results = objectDataHandler?.runObjectModel(onFrame: self.pixelBuffer)
+        let results = objectDataHandler?.runObjectModel(onFrame: pixelBuffer)
         let confidence = MirrorTestConstantParameters.shared.objectDetectionConfidence
         var finalResult: Inference?
         debugPrint("\(String(describing: self.name)) : Runing object detection \(String(describing: results))")
@@ -79,7 +74,10 @@ extension MirrorTestOD_OCR_Operation {
     func performOCR(originalImage: UIImage, imageForOCR: UIImage?) {
         let textRecognizer = ImageTextAndBarCodeRecognizer()
         textRecognizer.getTextFromImage(image: imageForOCR, readTextType: nil, isImageScaleReq: false) { [weak self] (recognizTexts, snapshot, errorMessage) in
-            guard let self = self, !self.isCancelled else {return}
+            guard let self = self, !self.isCancelled else {
+                self?.finish()
+                return
+            }
             
             let ocrResult = self.doOCROnRecognizedTexts(recognizedTexts: recognizTexts)
             // check imei & security text lies in OCR Text
@@ -87,14 +85,13 @@ extension MirrorTestOD_OCR_Operation {
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     if !self.isCancelled {
-                        self.isIMEIMatched = true
                         self.finish()
                     }
                 }
             } else {
                 debugPrint("OCR Failed with values \(ocrResult) \(String(describing: self.name))")
                 self.oaLogger.log(errorString: "OCR Failed with values \(ocrResult) \(String(describing: self.name))", primaryImage: originalImage, primaryImageName: self.name ?? "", secondaryImage: imageForOCR, secondaryImageName: self.name ?? "")
-                self.operationError = ocrResult.imeiOCR ? MirrorTestConstantParameters.shared.OCRFailed : MirrorTestConstantParameters.shared.OCRLeftRightFailed
+                self.processResultModel.mProcessError = ocrResult.imeiOCR ? MirrorTestError.OCRFailed : MirrorTestError.LeftRightTextOCRFailed
                 self.finish()
             }
         }
