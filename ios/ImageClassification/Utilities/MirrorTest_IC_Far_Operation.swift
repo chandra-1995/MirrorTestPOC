@@ -32,7 +32,9 @@ class MirrorTest_IC_Far_Operation: AsyncOperation {
         // Test far & near
         if !result.far && !result.near {
             // Test Dark logic
-            if !isDark(capturedImage: self.processResultModel?.originalImage), let detectedObjCVBuffer = detectedObjImage?.pixelBufferFromImage() {
+            if !isDark(capturedImage: self.processResultModel?.originalImage)
+               , let detectedObjCVBuffer = detectedObjImage?.pixelBufferFromImage()
+               , let originalImage = self.processResultModel?.originalImage{
                 guard !self.isCancelled else {
                     finish()
                     return
@@ -41,14 +43,21 @@ class MirrorTest_IC_Far_Operation: AsyncOperation {
                 if let results = runImageClassification(pixelBuffer: detectedObjCVBuffer, isSkipNonMendatoryClasses: false) {
                     // if classification failed
                     if results.filter({$0.label == MirrorTestConstantParameters.shared.imageClassificationMendatoryClass && $0.confidence >= MirrorTestConstantParameters.shared.imageClassificationConfidence}).first == nil {
-                    } else {
                         let resultWithMaxConfidence = results.max{ prev, next in prev.confidence < next.confidence }
                         
+                        if resultWithMaxConfidence?.label == MirrorTestConstantParameters.shared.imageClassificationMendatoryClass { // low confidence with ok
+                            debugPrint("classification failed ImageClassificationLowConfidence \(self.name)")
+                            oaLogger.log(errorString: "classification failed ImageClassificationLowConfidence", primaryImage: originalImage, primaryImageName: self.name, secondaryImage: detectedObjImage, secondaryImageName: self.name)
+                            self.processResultModel?.mProcessError = .ImageClassificationLowConfidence
+                        } else { // result found other than ok
+                            debugPrint("Obstracted Image Detected \(self.name)")
+                            oaLogger.log(errorString: "Obstracted Image Detected", primaryImage: originalImage, primaryImageName: self.name, secondaryImage: detectedObjImage, secondaryImageName: self.name)
+                            self.processResultModel?.mProcessError = .ObstractImageDetected
+                        }
                     }
                 } else { // no result from classification
                     debugPrint("image classification failed  \(self.name)")
-                    self.oaLogger.log(errorString: "image classification failed  \(self.name)", primaryImage: self.processResultModel?.originalImage, primaryImageName: self.name ?? "")
-                    self.processResultModel?.mProcessError = MirrorTestError.ImageClassificationFailed
+                    self.oaLogger.log(errorString: "image classification failed  \(self.name)", primaryImage: originalImage, primaryImageName: self.name ?? "")
                 }
             } else { // dark logic failed
                 debugPrint("dark logic failed  \(String(describing: self.name))")

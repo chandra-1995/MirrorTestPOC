@@ -107,10 +107,10 @@ class ViewController: UIViewController {
     var currentRunningICOperationsInQueue = 0
     var isImageCaptured = false
     var errorMessage: String? = nil {
-        willSet {
+        didSet {
             DispatchQueue.main.async { [weak self] in
                 self?.callEraseErrorMessageTimer()
-                self?.errorLabel.text = newValue
+                self?.errorLabel.text = self?.errorMessage
             }
         }
     }
@@ -155,6 +155,7 @@ class ViewController: UIViewController {
         #endif
         cameraCapture.delegate = self
         addObserver()
+        setUpNewBrightnessValue()
         changeHashCodeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] timer in
             if let string = self?.getDisplayableHashKey(with: nil) {
                 self?.hashCode.text = string
@@ -220,12 +221,12 @@ class ViewController: UIViewController {
     }
     
     deinit {
-        NotificationCenter.default.removeObserver(self)
         oaLogger.closeLogginSession()
         resetEverythingToShowError()
         changeHashCodeTimer?.invalidate()
         changeHashCodeTimer = nil
         stackForICqueueOperations.removeAll()
+        NotificationCenter.default.removeObserver(self)
         print("deinitializing view controller")
     }
     
@@ -326,14 +327,14 @@ extension ViewController: CameraFeedManagerDelegate {
 extension ViewController {
     
     fileprivate func callEraseErrorMessageTimer() {
-        if eraseErrorTimer == nil {
-            eraseErrorTimer = Timer.scheduledTimer(withTimeInterval: Double(round(100 * delayOfShowingMessages)/100), repeats: false, block: { timer in
-                DispatchQueue.main.async { [weak self] in
-                    self?.startProcessAgain()
-                    self?.eraseErrorTimer?.invalidate()
-                    self?.eraseErrorTimer = nil
-                    self?.errorMessage = nil
-                }
+        if !(errorMessage?.isEmpty ?? true) {
+            eraseErrorTimer = Timer.scheduledTimer(withTimeInterval: Double(round(100 * delayOfShowingMessages)/100), repeats: false, block: { [weak self] timer in
+                guard let self = self else { return }
+                self.mirrorTestOD_OCR_queue?.cancelAllOperations()
+                self.eraseErrorTimer?.invalidate()
+                self.performanceView?.start()
+                self.eraseErrorTimer = nil
+                self.errorMessage = nil
             })
         }
     }
@@ -451,12 +452,6 @@ extension ViewController {
         return nil
     }
     
-    fileprivate func startProcessAgain() {
-        //        self.cameraCapture.checkCameraConfigurationAndStartSession()
-//        self.mirrorTestOD_OCR_queue?.cancelAllOperations()
-        self.performanceView?.start()
-    }
-    
     fileprivate func resetEverythingToShowError() {
         //        self.cameraCapture.stopSession()
         self.mirrorTestIC_queue?.cancelAllOperations()
@@ -486,6 +481,7 @@ extension ViewController {
     fileprivate func addObserver() {
         NotificationCenter.default.addObserver(self, selector: #selector(appDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(applicationWillResignActive), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(brightnessDidChange), name: UIScreen.brightnessDidChangeNotification, object: nil)
     }
     
     fileprivate func removeObserver() {
@@ -505,12 +501,19 @@ extension ViewController {
     func setUpNewBrightnessValue() {
         let preValue = UIScreen.main.brightness
         UserDefaults.standard.set(preValue, forKey: "previousBrightnessValue")
-        UIScreen.main.brightness = CGFloat(0.8)
+        UIScreen.main.brightness = CGFloat(0.3)
     }
     
     func setUpPreviousBrightnessValue() {
         if let preValue = UserDefaults.standard.value(forKey: "previousBrightnessValue") as? Float {
             UIScreen.main.brightness = CGFloat(preValue)
+        }
+    }
+    
+    @objc func brightnessDidChange() {
+        if UIScreen.main.brightness > 0.3 {
+            print("brightness observer called \(UIScreen.main.brightness)")
+            setUpNewBrightnessValue()
         }
     }
 }
