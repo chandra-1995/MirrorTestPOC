@@ -11,12 +11,12 @@ import AVFoundation
 import UIKit
 
 class MirrorTestOD_OCR_Operation: AsyncOperation {
-    private let oaLogger: OALogger
+    private let oaLogger: OALogger?
     private let pixelBuffer: CVPixelBuffer
     let processResultModel: MirrorTestProcessModel = MirrorTestProcessModel()
     
     // MARK: - INSTANCE METHODS
-    init(pixelBuffer: CVPixelBuffer, logger: OALogger) {
+    init(pixelBuffer: CVPixelBuffer, logger: OALogger?) {
         self.oaLogger = logger
         self.pixelBuffer = pixelBuffer
     }
@@ -41,7 +41,7 @@ class MirrorTestOD_OCR_Operation: AsyncOperation {
             }
         } else {
             debugPrint("object detection failed.  \(String(describing: self.name))")
-            self.oaLogger.log(errorString: "object detection failed.  \(String(describing: self.name))", primaryImage: self.processResultModel.originalImage, primaryImageName: self.name ?? "")
+            self.oaLogger?.log(errorString: "object detection failed.  \(String(describing: self.name))", primaryImage: self.processResultModel.originalImage, primaryImageName: self.name ?? "")
             self.processResultModel.mProcessError = MirrorTestError.ObjectDetectionFaild
             self.finish()
         }
@@ -56,7 +56,7 @@ extension MirrorTestOD_OCR_Operation {
         let confidence = MirrorTestConstantParameters.shared.objectDetectionConfidence
         var finalResult: Inference?
         debugPrint("\(String(describing: self.name)) : Runing object detection \(String(describing: results))")
-        oaLogger.log(errorString: "\(String(describing: self.name)) : Runing object detection \(String(describing: results))")
+        oaLogger?.log(errorString: "\(String(describing: self.name)) : Runing object detection \(String(describing: results))")
         if let matchedResult = results?.inferences.filter({$0.className == MirrorTestConstantParameters.shared.objectDetectionReqClassName && $0.confidence >= confidence}).first {
             finalResult = matchedResult
         } else {
@@ -90,7 +90,7 @@ extension MirrorTestOD_OCR_Operation {
                 }
             } else {
                 debugPrint("OCR Failed with values \(ocrResult) \(String(describing: self.name))")
-                self.oaLogger.log(errorString: "OCR Failed with values \(ocrResult) \(String(describing: self.name))", primaryImage: originalImage, primaryImageName: self.name ?? "", secondaryImage: imageForOCR, secondaryImageName: self.name ?? "")
+                self.oaLogger?.log(errorString: "OCR Failed with values \(ocrResult) \(String(describing: self.name))", primaryImage: originalImage, primaryImageName: self.name ?? "", secondaryImage: imageForOCR, secondaryImageName: self.name ?? "")
                 self.processResultModel.mProcessError = ocrResult.imeiOCR ? MirrorTestError.OCRFailed : MirrorTestError.LeftRightTextOCRFailed
                 self.finish()
             }

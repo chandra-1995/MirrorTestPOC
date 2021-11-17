@@ -88,7 +88,6 @@ class ViewController: UIViewController {
     
     private var mirrorTestOD_OCR_queue: OperationQueue?
     private var mirrorTestIC_queue: OperationQueue?
-    private let oaLogger = OALogger(initiatedFor: .MirrorTest)
     private var performanceView: PerformanceMonitor?
     private var changeHashCodeTimer: Timer?
     private var eraseErrorTimer: Timer?
@@ -99,6 +98,7 @@ class ViewController: UIViewController {
     private var start = CFAbsoluteTimeGetCurrent()
     private var currentProcessedFramesForError = 0
     weak var delegate: MirrorTestDelegate?
+    var oaLogger: OALogger?
     var isSupportMultiThreading = true
     var delayOfShowingMessages: Double = 0
     let queue = DispatchQueue(label: "com.oneassist")
@@ -118,7 +118,7 @@ class ViewController: UIViewController {
     // MARK: View Handling Methods
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        self.oaLogger = OALogger(initiatedFor: .MirrorTest)
         leftText.transform = CGAffineTransform(scaleX: -1, y: 1);
         rightText.transform = CGAffineTransform(scaleX: -1, y: 1);
         firstIMEI.transform = CGAffineTransform(scaleX: -1, y: 1);
@@ -221,7 +221,6 @@ class ViewController: UIViewController {
     }
     
     deinit {
-        oaLogger.closeLogginSession()
         resetEverythingToShowError()
         changeHashCodeTimer?.invalidate()
         changeHashCodeTimer = nil
@@ -283,18 +282,18 @@ extension ViewController: CameraFeedManagerDelegate {
     func sessionWasInterrupted(canResumeManually resumeManually: Bool) {
         
         // Updates the UI when session is interupted.
-        oaLogger.log(errorString: "Camera Interrupted")
+        oaLogger?.log(errorString: "Camera Interrupted")
         exit(0)
     }
     
     func sessionInterruptionEnded() {
         // Updates UI once session interruption has ended.
-        oaLogger.log(errorString: "Camera Interruption ended")
+        oaLogger?.log(errorString: "Camera Interruption ended")
     }
     
     func sessionRunTimeErrorOccured() {
         // Handles session run time error by updating the UI and providing a button if session can be manually resumed.
-        oaLogger.log(errorString: "Camera Runtime Interrupted")
+        oaLogger?.log(errorString: "Camera Runtime Interrupted")
         previewView.shouldUseClipboardImage = true
         exit(0)
     }
@@ -427,7 +426,7 @@ extension ViewController {
             self.resetEverythingToShowError()
             print("-- Whole Process Took  \(diff) seconds \n Max Memory Usage:: \(self.formattedMemory(memory: self.maxMemoryUsage)) CPU Usage:: \(round(self.maxCPUUsage))%")
             
-            self.oaLogger.log(errorString: "-- Whole Process Took  \(diff) seconds \n Max Memory Usage:: \(self.formattedMemory(memory: self.maxMemoryUsage)) CPU Usage:: \(round(self.maxCPUUsage))%")
+            self.oaLogger?.log(errorString: "-- Whole Process Took  \(diff) seconds \n Max Memory Usage:: \(self.formattedMemory(memory: self.maxMemoryUsage)) CPU Usage:: \(round(self.maxCPUUsage))%")
             print("going to unlock 3")
             self.isImageCaptured = true
             self.lock.unlock()

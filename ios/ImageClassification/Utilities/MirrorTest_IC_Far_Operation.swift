@@ -11,11 +11,11 @@ import AVFoundation
 import UIKit
 
 class MirrorTest_IC_Far_Operation: AsyncOperation {
-    private let oaLogger: OALogger
+    private let oaLogger: OALogger?
     let processResultModel: MirrorTestProcessModel?
     
     // MARK: - INSTANCE METHODS
-    init(logger: OALogger, processModel: MirrorTestProcessModel?) {
+    init(logger: OALogger?, processModel: MirrorTestProcessModel?) {
         self.oaLogger = logger
         self.processResultModel = processModel
     }
@@ -47,26 +47,26 @@ class MirrorTest_IC_Far_Operation: AsyncOperation {
                         
                         if resultWithMaxConfidence?.label == MirrorTestConstantParameters.shared.imageClassificationMendatoryClass { // low confidence with ok
                             debugPrint("classification failed ImageClassificationLowConfidence \(self.name)")
-                            oaLogger.log(errorString: "classification failed ImageClassificationLowConfidence", primaryImage: originalImage, primaryImageName: self.name, secondaryImage: detectedObjImage, secondaryImageName: self.name)
+                            oaLogger?.log(errorString: "classification failed ImageClassificationLowConfidence", primaryImage: originalImage, primaryImageName: self.name, secondaryImage: detectedObjImage, secondaryImageName: self.name)
                             self.processResultModel?.mProcessError = .ImageClassificationLowConfidence
                         } else { // result found other than ok
                             debugPrint("Obstracted Image Detected \(self.name)")
-                            oaLogger.log(errorString: "Obstracted Image Detected", primaryImage: originalImage, primaryImageName: self.name, secondaryImage: detectedObjImage, secondaryImageName: self.name)
+                            oaLogger?.log(errorString: "Obstracted Image Detected", primaryImage: originalImage, primaryImageName: self.name, secondaryImage: detectedObjImage, secondaryImageName: self.name)
                             self.processResultModel?.mProcessError = .ObstractImageDetected
                         }
                     }
                 } else { // no result from classification
                     debugPrint("image classification failed  \(self.name)")
-                    self.oaLogger.log(errorString: "image classification failed  \(self.name)", primaryImage: originalImage, primaryImageName: self.name ?? "")
+                    self.oaLogger?.log(errorString: "image classification failed  \(self.name)", primaryImage: originalImage, primaryImageName: self.name ?? "")
                 }
             } else { // dark logic failed
                 debugPrint("dark logic failed  \(String(describing: self.name))")
-                self.oaLogger.log(errorString: "dark logic failed  \(String(describing: self.name))", primaryImage: self.processResultModel?.originalImage, primaryImageName: self.name ?? "")
+                self.oaLogger?.log(errorString: "dark logic failed  \(String(describing: self.name))", primaryImage: self.processResultModel?.originalImage, primaryImageName: self.name ?? "")
                 self.processResultModel?.mProcessError = MirrorTestError.ImageIsDark
             }
         } else { // far or near failed
             debugPrint("far & near logic failed far value = \(result.far) , near value = \(result.near)  \(String(describing: self.name))")
-            self.oaLogger.log(errorString: "far & near logic failed far value = \(result.far) , near value = \(result.near)  \(String(describing: self.name))", primaryImage: self.processResultModel?.originalImage, primaryImageName: self.name ?? "")
+            self.oaLogger?.log(errorString: "far & near logic failed far value = \(result.far) , near value = \(result.near)  \(String(describing: self.name))", primaryImage: self.processResultModel?.originalImage, primaryImageName: self.name ?? "")
             self.processResultModel?.mProcessError = result.far ? MirrorTestError.ObjectIsFar : MirrorTestError.ObjectIsTooNear
         }
         self.finish()
@@ -78,16 +78,16 @@ extension MirrorTest_IC_Far_Operation {
     private func runImageClassification(pixelBuffer: CVPixelBuffer, isSkipNonMendatoryClasses: Bool = false) -> [Inference]? {
         let imageDataHandler = ModelDataHandler(modelFileInfo: MobileNet.modelInfo, labelsFileInfo: MobileNet.labelsInfo, inputWidth: 224, inputHeight: 224)
         debugPrint("Runing image classfication , \(self.name)")
-        oaLogger.log(errorString: "Runing image classfication , \(self.name)")
+        oaLogger?.log(errorString: "Runing image classfication , \(self.name)")
         let results = imageDataHandler?.runImageModel(onFrame: pixelBuffer)
         debugPrint("\(self.name) : Result from image classification :- \n \(String(describing: results))  ")
-        oaLogger.log(errorString: "\(self.name) : Result from image classification :- \n \(self.name)")
+        oaLogger?.log(errorString: "\(self.name) : Result from image classification :- \n \(self.name)")
         return results?.inferences
     }
     
     private func checkIfFarOrNear(image:UIImage?, croppedImage: UIImage?) -> (far: Bool,near: Bool) { // far logic
         debugPrint("Runing far logic  \(String(describing: self.name))")
-        oaLogger.log(errorString: "Runing far logic  \(String(describing: self.name))")
+        oaLogger?.log(errorString: "Runing far logic  \(String(describing: self.name))")
         var result = (far: true, near: true)
         let areaOfActualImage = (image?.size.height ?? 0) * (image?.size.width ?? 0) // area of actual image
         let areaOfCroppedImage = (croppedImage?.size.height ?? 0) * (croppedImage?.size.width ?? 0) // area of cropped image
@@ -97,7 +97,7 @@ extension MirrorTest_IC_Far_Operation {
         result.near = precentageAreaofCroppedInImage >= CGFloat(MirrorTestConstantParameters.shared.requiredBoundingBoxPerUnitNear)
         
         debugPrint("area of actual image \(areaOfActualImage) area of cropped image \(areaOfCroppedImage) precentageAreaofCroppedInImage \(precentageAreaofCroppedInImage)")
-        oaLogger.log(errorString: "\(String(describing: self.name)) :: area of actual image \(areaOfActualImage) area of cropped image \(areaOfCroppedImage) precentageAreaofCroppedInImage \(precentageAreaofCroppedInImage)")
+        oaLogger?.log(errorString: "\(String(describing: self.name)) :: area of actual image \(areaOfActualImage) area of cropped image \(areaOfCroppedImage) precentageAreaofCroppedInImage \(precentageAreaofCroppedInImage)")
         return result
     }
     
@@ -106,7 +106,7 @@ extension MirrorTest_IC_Far_Operation {
         if let image = capturedImage, let detectedObjectRect = self.processResultModel?.detectedObjectRect {
             let values = getBrightnessOutSideBoundingBox(originalImage: image, objectImageRect: detectedObjectRect)
             debugPrint("dark values \(values)")
-            oaLogger.log(errorString: "dark values \(values)")
+            oaLogger?.log(errorString: "dark values \(values)")
             if values.left < MirrorTestConstantParameters.shared.requiredMinLeftRightBrighteness
                 || values.right < MirrorTestConstantParameters.shared.requiredMinLeftRightBrighteness
                 || values.top < MirrorTestConstantParameters.shared.requiredMinTopBottomBrighteness
