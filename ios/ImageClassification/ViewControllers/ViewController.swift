@@ -102,10 +102,11 @@ class ViewController: UIViewController {
     var isSupportMultiThreading = true
     var delayOfShowingMessages: Double = 0
     let queue = DispatchQueue(label: "com.oneassist")
-    let stackForICqueueOperations = Stack<MirrorTestProcessModel>()
+    let stackForICqueueOperations = MirrorTestStack<MirrorTestProcessModel>()
     let maxConcurrentForIC_Queue = 1
     var currentRunningICOperationsInQueue = 0
     var isImageCaptured = false
+    var delayBetweenInferencesMs: Double = 0
     var errorMessage: String? = nil {
         didSet {
             DispatchQueue.main.async { [weak self] in
@@ -159,6 +160,7 @@ class ViewController: UIViewController {
         changeHashCodeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] timer in
             if let string = self?.getDisplayableHashKey(with: nil) {
                 self?.hashCode.text = string
+                self?.cameraCapture.checkCameraConfigurationAndStartSession()
             }
         })
     }
@@ -167,7 +169,9 @@ class ViewController: UIViewController {
         super.viewWillAppear(animated)
         
         #if !targetEnvironment(simulator)
-        cameraCapture.checkCameraConfigurationAndStartSession()
+        if !(self.hashCode.text?.isEmpty ?? true) {
+            cameraCapture.checkCameraConfigurationAndStartSession()
+        }
         #endif
         UIApplication.shared.isIdleTimerDisabled = true
     }
@@ -245,6 +249,10 @@ extension ViewController: CameraFeedManagerDelegate {
         // Run the live camera pixelBuffer through tensorFlow to get the result
         
         let currentTimeMs = Date().timeIntervalSince1970 * 1000
+        guard  (currentTimeMs - previousInferenceTimeMs) >= delayBetweenInferencesMs else {
+            return
+        }
+        previousInferenceTimeMs = currentTimeMs
         
         lock.lock()
         guard (errorMessage?.isEmpty ?? true) else {
@@ -252,8 +260,6 @@ extension ViewController: CameraFeedManagerDelegate {
             return
         }
         lock.unlock()
-        
-        previousInferenceTimeMs = currentTimeMs
         
         let newOperation = MirrorTestOD_OCR_Operation(pixelBuffer: pixelBuffer, logger: oaLogger)
         newOperation.name = UUID().uuidString
@@ -343,9 +349,8 @@ extension ViewController {
         lock.lock()
         print("going to lock 1")
         if let processModel = processModel, (errorMessage?.isEmpty ?? true) {
-            if (self.currentRunningICOperationsInQueue ) >= (self.maxConcurrentForIC_Queue)
-               , self.stackForICqueueOperations.count < MirrorTestConstantParameters.shared.q2StackBufferLimit {
-                self.stackForICqueueOperations.push(processModel)
+            if (self.currentRunningICOperationsInQueue ) >= (self.maxConcurrentForIC_Queue) {
+                self.stackForICqueueOperations.pushUpdatedFrame(processModel)
                 print(":: directly added to IC Operations Stack count after adding \(self.stackForICqueueOperations.count)")
             } else {
                 print(":: directly added to IC Queue")
