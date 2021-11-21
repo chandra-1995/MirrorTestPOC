@@ -30,12 +30,10 @@ class Stack<T>{
 }
 
 class MirrorTestStack<T: MirrorTestProcessModel>: Stack<MirrorTestProcessModel> {
-    var bufferSize: Int? = 13
+    var bufferSize: Int? = 12
     
     func pushUpdatedFrame(_ data:T) {
-        print("///// \(self.count == bufferSize) \(self.count) \(bufferSize)")
         if self.count == bufferSize, bufferSize != 0 {
-            print("removed first and added new item at last")
             stackData.removeFirst()
         }
         stackData.append(data)

@@ -106,7 +106,7 @@ class ViewController: UIViewController {
     let maxConcurrentForIC_Queue = 1
     var currentRunningICOperationsInQueue = 0
     var isImageCaptured = false
-    var delayBetweenInferencesMs: Double = 0
+    var delayBetweenInferencesMs: Double = 100
     var errorMessage: String? = nil {
         didSet {
             DispatchQueue.main.async { [weak self] in
@@ -289,7 +289,7 @@ extension ViewController: CameraFeedManagerDelegate {
         
         // Updates the UI when session is interupted.
         oaLogger?.log(errorString: "Camera Interrupted")
-        exit(0)
+//        exit(0)
     }
     
     func sessionInterruptionEnded() {

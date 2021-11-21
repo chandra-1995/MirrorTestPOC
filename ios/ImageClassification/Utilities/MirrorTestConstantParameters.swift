@@ -41,7 +41,7 @@ class MirrorTestConstantParameters{
     let darkImageDetected = "Switch on more lights around you"
     let OCRFailed = "Capturing image..."
     let OCRLeftRightFailed = "Tilt your camera slightly downwards"
-    let errorMessageAfterProcessFrames = 300
+    let errorMessageAfterProcessFrames = 3
     static let shared = MirrorTestConstantParameters()
     
     //Initializer access level change now
